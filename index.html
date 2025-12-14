@@ -1,47 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Speech Test</title>
+  <meta charset="UTF-8">
+  <title>Realtime Speech Debug</title>
+  <style>
+    body { font-family: sans-serif; background:#111; color:#0f0; padding:20px; }
+    button { padding:10px 15px; font-size:16px; }
+    #out { margin-top:20px; font-size:20px; white-space:pre-wrap; }
+  </style>
 </head>
 <body>
 
-<h2>🎙 Speech Recognition Test</h2>
+<h2>🎤 Realtime Speech Test</h2>
 <button id="start">Start</button>
 <button id="stop">Stop</button>
 
-<pre id="output"></pre>
+<div id="out">Waiting…</div>
 
 <script>
-const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+const out = document.getElementById("out");
 
-if (!SpeechRecognition) {
-  alert("SpeechRecognition NOT supported. Use Chrome.");
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) {
+  out.textContent = "❌ SpeechRecognition NOT supported";
+  throw new Error("No SpeechRecognition");
 }
 
-const recognition = new SpeechRecognition();
-recognition.continuous = true;
-recognition.interimResults = true;
-recognition.lang = "en-US";
+const rec = new SR();
+rec.lang = "en-US";
+rec.continuous = true;
+rec.interimResults = true;
 
-const output = document.getElementById("output");
+rec.onstart = () => out.textContent = "🎙️ Listening...";
+rec.onerror = e => out.textContent = "ERROR: " + e.error;
 
-recognition.onresult = (event) => {
+rec.onresult = (e) => {
   let text = "";
-  for (let i = 0; i < event.results.length; i++) {
-    text += event.results[i][0].transcript;
+  for (let i = 0; i < e.results.length; i++) {
+    text += e.results[i][0].transcript;
   }
-  output.textContent = text;
+  out.textContent = text;
 };
 
-recognition.onerror = (e) => {
-  console.error("ERROR:", e);
-  output.textContent = "Error: " + e.error;
-};
-
-document.getElementById("start").onclick = () => recognition.start();
-document.getElementById("stop").onclick = () => recognition.stop();
+document.getElementById("start").onclick = () => rec.start();
+document.getElementById("stop").onclick = () => rec.stop();
 </script>
 
 </body>
