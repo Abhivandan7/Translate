@@ -27,20 +27,18 @@ NeoScan is a **futuristic, real-time AI-powered QR code scanner** that runs enti
   * No backend or server required.
   * Can be hosted on GitHub Pages or any static site host.
 
-## Live Demo
+## Get Started with NeoScan
 
-You can deploy NeoScan to **GitHub Pages** or open the HTML file in Chrome or other modern browsers that support camera access.
+* **Online Access:** Open NeoScan directly in your browser using [this link](https://abhivandan7.github.io/NeoScan/).
 
-## Installation
+* **Mobile Widget:** For faster access, add NeoScan to your phone’s home screen:
 
-No installation is required. Simply open the `index.html` in a **modern browser** with camera access (Chrome recommended).
+  * **iOS Safari:** Tap **Share → Add to Home Screen**.
+  * **Android Chrome:** Tap **Menu → Add to Home screen**.
 
-### Optional Steps for GitHub Pages
+* **Local Use:** Download the repository and open `index.html` in a modern browser.
 
-1. Create a repository on GitHub and push the NeoScan files.
-2. Go to the repository settings → Pages.
-3. Select the `main` branch and root directory.
-4. GitHub will provide a public URL to access NeoScan.
+* **Tip:** Allow camera access to start real-time scanning instantly.
 
 ## Usage
 
@@ -68,6 +66,12 @@ No installation is required. Simply open the `index.html` in a **modern browser*
 ## License
 
 NeoScan is released under the **Apache 2.0 License**. You are free to use, modify, and distribute it.
+
+## Screenshots
+
+![NeoScan Screenshot](screenshot.png)
+*(Replace with your actual screenshot after deploying)*
+
 ---
 
 **NeoScan** - Your futuristic companion for safe QR code scanning.
