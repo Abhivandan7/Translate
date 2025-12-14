@@ -1,68 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Realtime Speech Test (KNOWN WORKING)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime Voice Translator – Mobile Friendly</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#111; color:#0f0; padding:20px; }
-    button { font-size:16px; padding:10px 16px; margin-right:10px; }
-    #out { margin-top:20px; font-size:18px; white-space:pre-wrap; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0b1020; color:#e6e8ef; margin:0; padding:16px; }
+    header { margin-bottom:16px; }
+    h1 { font-size:20px; }
+    select, button { padding:8px 12px; margin-right:8px; border-radius:8px; border:none; }
+    button { background:#4f5dff; color:#fff; }
+    button.secondary { background:#2a316d; }
+    .stream { margin-top:8px; font-family: monospace; line-height:1.6; word-wrap:break-word; }
+    .card { background:#12183a; border-radius:12px; padding:12px; margin-bottom:16px; }
+    footer { margin-top:16px; font-size:12px; color:#9aa0ff; }
   </style>
 </head>
 <body>
-  <h2>🎤 Speech Recognition – Debug Version</h2>
-  <p>This page ONLY tests microphone → text. If this does not work, nothing else will.</p>
+  <header>
+    <h1>🎙️ Realtime Cascading Voice Translator</h1>
+  </header>
 
-  <button id="start">Start</button>
-  <button id="stop">Stop</button>
+  <div class="card">
+    <h2>Live Speech → Words</h2>
+    <select id="srcLang">
+      <option value="en-US">English</option>
+      <option value="hi-IN">Hindi</option>
+      <option value="fr-FR">French</option>
+      <option value="es-ES">Spanish</option>
+    </select>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" class="secondary">Stop</button>
+    <div id="liveWords" class="stream"></div>
+  </div>
 
-  <div id="out">(waiting...)</div>
+  <div class="card">
+    <h2>Realtime Word-by-Word Translation</h2>
+    <select id="tgtLang">
+      <option value="es">Spanish</option>
+      <option value="fr">French</option>
+      <option value="hi">Hindi</option>
+    </select>
+    <div id="translatedWords" class="stream"></div>
+  </div>
+
+  <footer>
+    ✔️ Works on mobile & desktop Chrome · Uses Web Speech API · LibreTranslate API (free)
+  </footer>
 
 <script>
-// ===== VERY BASIC, PROVEN SETUP =====
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
 if (!SpeechRecognition) {
-  document.getElementById('out').textContent = '❌ SpeechRecognition NOT supported in this browser.';
-  throw new Error('Not supported');
+  alert('SpeechRecognition API not supported. Use Chrome mobile or desktop.');
 }
 
-const rec = new SpeechRecognition();
-rec.lang = 'en-US';
-rec.continuous = true;
-rec.interimResults = true;
+const recognition = new SpeechRecognition();
+recognition.continuous = true;
+recognition.interimResults = true;
 
-const out = document.getElementById('out');
+const liveWords = document.getElementById('liveWords');
+const translatedWords = document.getElementById('translatedWords');
+let processedText = '';
 
-rec.onstart = () => {
-  out.textContent = '🎧 Listening... Speak now.';
-};
-
-rec.onresult = (e) => {
-  let text = '';
-  for (let i = 0; i < e.results.length; i++) {
-    text += e.results[i][0].transcript;
+recognition.onresult = async (event) => {
+  let fullTranscript = '';
+  for (let i = 0; i < event.results.length; i++) {
+    fullTranscript += event.results[i][0].transcript;
   }
-  out.textContent = text;
+
+  // Show live speech
+  liveWords.textContent = fullTranscript;
+
+  const delta = fullTranscript.slice(processedText.length).trim();
+  processedText = fullTranscript;
+
+  if (!delta) return;
+
+  const words = delta.split(/\s+/);
+  for (const word of words) {
+    try {
+      const t = await translateWord(word);
+      translatedWords.textContent += t + ' ';
+    } catch(e) {
+      translatedWords.textContent += '[' + word + '] ';
+    }
+  }
 };
 
-rec.onerror = (e) => {
-  out.textContent = '❌ Error: ' + e.error + '\n\n' +
-    'Common fixes:\n' +
-    '- Use Chrome desktop\n' +
-    '- Allow microphone permission\n' +
-    '- Use HTTPS or http://localhost\n' +
-    '- Do NOT open as file://';
+recognition.onerror = (e) => {
+  console.error('SpeechRecognition error:', e.error);
 };
 
-rec.onend = () => {
-  out.textContent += '\n\n(recognition stopped)';
+async function translateWord(word) {
+  const target = document.getElementById('tgtLang').value;
+  const res = await fetch('https://libretranslate.de/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ q: word, source: 'auto', target })
+  });
+  const data = await res.json();
+  return data.translatedText || word;
+}
+
+document.getElementById('startBtn').onclick = () => {
+  recognition.lang = document.getElementById('srcLang').value;
+  processedText = '';
+  liveWords.textContent = '';
+  translatedWords.textContent = '';
+  recognition.start();
 };
 
-// ===== CONTROLS =====
-document.getElementById('start').onclick = () => rec.start();
-document.getElementById('stop').onclick = () => rec.stop();
+document.getElementById('stopBtn').onclick = () => recognition.stop();
 </script>
 </body>
 </html>
