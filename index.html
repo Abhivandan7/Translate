@@ -1,50 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Realtime Speech Debug</title>
+  <title>Realtime Speech Test (KNOWN WORKING)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; background:#111; color:#0f0; padding:20px; }
-    button { padding:10px 15px; font-size:16px; }
-    #out { margin-top:20px; font-size:20px; white-space:pre-wrap; }
+    body { font-family: Arial, sans-serif; background:#111; color:#0f0; padding:20px; }
+    button { font-size:16px; padding:10px 16px; margin-right:10px; }
+    #out { margin-top:20px; font-size:18px; white-space:pre-wrap; }
   </style>
 </head>
 <body>
+  <h2>🎤 Speech Recognition – Debug Version</h2>
+  <p>This page ONLY tests microphone → text. If this does not work, nothing else will.</p>
 
-<h2>🎤 Realtime Speech Test</h2>
-<button id="start">Start</button>
-<button id="stop">Stop</button>
+  <button id="start">Start</button>
+  <button id="stop">Stop</button>
 
-<div id="out">Waiting…</div>
+  <div id="out">(waiting...)</div>
 
 <script>
-const out = document.getElementById("out");
+// ===== VERY BASIC, PROVEN SETUP =====
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SR) {
-  out.textContent = "❌ SpeechRecognition NOT supported";
-  throw new Error("No SpeechRecognition");
+if (!SpeechRecognition) {
+  document.getElementById('out').textContent = '❌ SpeechRecognition NOT supported in this browser.';
+  throw new Error('Not supported');
 }
 
-const rec = new SR();
-rec.lang = "en-US";
+const rec = new SpeechRecognition();
+rec.lang = 'en-US';
 rec.continuous = true;
 rec.interimResults = true;
 
-rec.onstart = () => out.textContent = "🎙️ Listening...";
-rec.onerror = e => out.textContent = "ERROR: " + e.error;
+const out = document.getElementById('out');
+
+rec.onstart = () => {
+  out.textContent = '🎧 Listening... Speak now.';
+};
 
 rec.onresult = (e) => {
-  let text = "";
+  let text = '';
   for (let i = 0; i < e.results.length; i++) {
     text += e.results[i][0].transcript;
   }
   out.textContent = text;
 };
 
-document.getElementById("start").onclick = () => rec.start();
-document.getElementById("stop").onclick = () => rec.stop();
-</script>
+rec.onerror = (e) => {
+  out.textContent = '❌ Error: ' + e.error + '\n\n' +
+    'Common fixes:\n' +
+    '- Use Chrome desktop\n' +
+    '- Allow microphone permission\n' +
+    '- Use HTTPS or http://localhost\n' +
+    '- Do NOT open as file://';
+};
 
+rec.onend = () => {
+  out.textContent += '\n\n(recognition stopped)';
+};
+
+// ===== CONTROLS =====
+document.getElementById('start').onclick = () => rec.start();
+document.getElementById('stop').onclick = () => rec.stop();
+</script>
 </body>
 </html>
